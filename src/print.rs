@@ -150,8 +150,7 @@ fn compute_modules<'a>(context: &'a Context) -> Vec<Module<'a>> {
     prompt_order
         .par_iter()
         .filter(|module| !context.is_module_disabled_in_config(module))
-        .map(|module| modules::handle(module, &context)) // Compute modules
-        .flatten() // Remove segments set to `None`
+        .filter_map(|module| modules::handle(module, &context)) // Compute modules
         .collect::<Vec<Module<'a>>>()
 }
 
