@@ -9,6 +9,8 @@ use std::collections::HashMap;
 use std::env;
 use std::ffi::OsStr;
 use std::fs;
+use std::fs::File;
+use std::io::{BufRead, BufReader};
 use std::path::{Path, PathBuf};
 use std::string::String;
 use std::time::{Duration, SystemTime};
@@ -31,6 +33,8 @@ pub struct Context<'a> {
 
     /// Private field to store Git information for modules who need it
     repo: OnceCell<Repo>,
+
+    history: OnceCell<Vec<String>>,
 
     /// The shell the user is assumed to be running
     pub shell: Shell,
@@ -81,6 +85,7 @@ impl<'a> Context<'a> {
             properties,
             current_dir,
             dir_files: OnceCell::new(),
+            history: OnceCell::new(),
             repo: OnceCell::new(),
             shell,
         }
@@ -164,6 +169,40 @@ impl<'a> Context<'a> {
                     SystemTime::now().duration_since(start_time).unwrap()
                 );
                 Ok(dir_files)
+            })
+    }
+
+    pub fn get_history(&self) -> Result<&Vec<String>, std::io::Error> {
+        println!("inside get history");
+        self.history
+            .get_or_try_init(|| -> Result<Vec<String>, std::io::Error> {
+                println!("inside get history init");
+                let filename = match self.shell {
+                    Shell::Bash => "/home/luca/.bash_history",
+                    Shell::Fish => "/home/luca/.local/share/fish/fish_history",
+                    Shell::Zsh => "/home/luca/.histfile",
+                    _ => "",
+                };
+                println!("{}", filename);
+                match File::open(filename) {
+                    Ok(file) => {
+                        let reader = BufReader::new(file);
+                        let lines : Vec<Result<String, std::io::Error>> = reader.lines().collect();
+                        let history : Vec<String> = if self.shell == Shell::Fish {
+                            lines.iter().rev().filter_map(|res| {
+                                match res {
+                                    Ok(el) if el.starts_with("- cmd:") => Some(el.split_at(7).1.to_string()),
+                                    _ => None
+                                }
+                            }).take(10).collect()
+                        } else {
+                            lines.into_iter().rev().take(10).flatten().collect()
+                        };
+                        println!("{:?}", history);
+                        Ok(history)
+                    }
+                    Err(err) => Err(err),
+                }
             })
     }
 
