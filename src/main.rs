@@ -64,6 +64,13 @@ fn main() {
         .help("The number of currently running jobs")
         .takes_value(true);
 
+    let history = Arg::with_name("history")
+        .short("s")
+        .long("history")
+        .value_name("HISTORY")
+        .help("The history list")
+        .takes_value(true);
+
     let init_scripts_arg = Arg::with_name("print_full_init")
         .long("print-full-init")
         .help("Print the main initialization script (as opposed to the init stub)");
@@ -90,7 +97,8 @@ fn main() {
                     .arg(&path_arg)
                     .arg(&cmd_duration_arg)
                     .arg(&keymap_arg)
-                    .arg(&jobs_arg),
+                    .arg(&jobs_arg)
+                    .arg(&history),
             )
             .subcommand(
                 SubCommand::with_name("module")

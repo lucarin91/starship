@@ -29,8 +29,9 @@ pub fn module<'a>(context: &'a Context) -> Option<Module<'a>> {
 
     let is_venv = env::var("VIRTUAL_ENV").ok().is_some();
 
-    let is_history = context.get_history().ok()?.iter().any(|el| el.contains("python"));
-    
+    let history = context.get_history().ok()?;
+    let is_history = history.contains("python") || history.contains("python2") || history.contains("python3");
+
     if !is_py_project && !is_venv && !is_history {
         return None;
     }
