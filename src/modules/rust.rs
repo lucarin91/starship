@@ -19,7 +19,9 @@ pub fn module<'a>(context: &'a Context) -> Option<Module<'a>> {
         .set_extensions(&["rs"])
         .is_match();
 
-    if !is_rs_project {
+    let is_history = context.is_cmd_history(&["cargo", "rustc"]);
+
+    if !is_rs_project && !is_history {
         return None;
     }
 

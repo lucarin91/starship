@@ -65,7 +65,7 @@ fn main() {
         .takes_value(true);
 
     let history = Arg::with_name("history")
-        .short("s")
+        .short("y")
         .long("history")
         .value_name("HISTORY")
         .help("The history list")

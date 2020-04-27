@@ -17,7 +17,9 @@ pub fn module<'a>(context: &'a Context) -> Option<Module<'a>> {
         .set_extensions(&["java", "class", "jar", "gradle"])
         .is_match();
 
-    if !is_java_project {
+    let is_history = context.is_cmd_history(&["java", "javac"]);
+
+    if !is_java_project && !is_history {
         return None;
     }
 

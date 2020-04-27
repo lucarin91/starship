@@ -173,9 +173,20 @@ impl<'a> Context<'a> {
     pub fn get_history(&self) -> Result<&HashSet<String>, ()> {
         self.history
             .get_or_try_init(|| match self.properties.get("history") {
-                Some(val) => Ok(val.split(' ').map(str::to_owned).collect::<HashSet<_>>()),
+                Some(val) => {
+                    let history_set = val.split(' ').map(str::to_owned).collect::<HashSet<_>>();
+                    log::debug!("history: {:?}", history_set);
+                    Ok(history_set)
+                }
                 None => Err(()),
             })
+    }
+
+    pub fn is_cmd_history(&self, commands: &[&str]) -> bool {
+        match self.get_history() {
+            Ok(history) => commands.iter().any(|cmd| history.contains(*cmd)),
+            _ => false,
+        }
     }
 
     fn get_shell() -> Shell {
